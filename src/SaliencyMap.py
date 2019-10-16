@@ -19,10 +19,11 @@ class SaliencyMap:
         # return
         return R, G, B, I
 
+    ## constructing a Gaussian pyramid
     def FMCreateGaussianPyr(self, src):
         dst = list()
         dst.append(src)
-        for i in range(1,4):
+        for i in range(1,9):
             nowdst = cv2.pyrDown(dst[i-1])
             dst.append(nowdst)
         return dst
