@@ -27,3 +27,24 @@ class SaliencyMap:
             nowdst = cv2.pyrDown(dst[i-1])
             dst.append(nowdst)
         return dst
+
+    def FMCenterSurroundDiff(self, GaussianMaps):
+        dst = list()
+        for s in range(2,5):
+            now_size = GaussianMaps[s].shape
+            now_size = (now_size[1], now_size[0])  ## (width, height)
+            tmp = cv2.resize(GaussianMaps[s+3], now_size, interpolation=cv2.INTER_LINEAR)
+            nowdst = cv2.absdiff(GaussianMaps[s], tmp)
+            dst.append(nowdst)
+            tmp = cv2.resize(GaussianMaps[s+4], now_size, interpolation=cv2.INTER_LINEAR)
+            nowdst = cv2.absdiff(GaussianMaps[s], tmp)
+            dst.append(nowdst)
+        return dst
+
+    def FMGaussianPyrCSD(self, src):
+        GaussianMaps = self.FMCreateGaussianPyr(src)
+        dist = self.FMCenterSurroundDiff(GaussianMaps)
+        return dist
+
+    def IFMGetFM(self, I):
+        return self.FMGaussianPyrCSD(I)
