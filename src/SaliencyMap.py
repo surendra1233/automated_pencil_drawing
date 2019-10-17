@@ -44,17 +44,17 @@ class SaliencyMap:
             dst.append(nowdst)
         return dst
 
-    ## constructing a Gaussian pyramid + taking center-surround differences
+    # constructing a Gaussian pyramid + taking center-surround differences
     def FMGaussianPyrCSD(self, src):
         GaussianMaps = self.FMCreateGaussianPyr(src)
         dist = self.FMCenterSurroundDiff(GaussianMaps)
         return dist
 
-    ## intensity feature maps
+    # intensity feature maps
     def IFMGetFM(self, I):
         return self.FMGaussianPyrCSD(I)
 
-    # Color efatuire maps
+    # Color feature maps
     def CFMGetFM(self, R, G, B):
         tmp1 = cv2.max(R, G)
         RGBMax = cv2.max(B, tmp1)
