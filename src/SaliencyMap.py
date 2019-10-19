@@ -71,3 +71,26 @@ class SaliencyMap:
         BYFM = self.FMGaussianPyrCSD(BY)
         # return
         return RGFM, BYFM
+
+    def SMGetBinarizedSM(self, src):
+        self.SM = self.SMGetSM(src)
+        SM_I8U = np.uint8(255 * self.SM)
+        thresh, binarized_SM = cv2.threshold(
+            SM_I8U, thresh=0, maxval=255, type=cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+        return binarized_SM
+
+    def SMGetSalientRegion(self, src):
+        binarized_SM = self.SMGetBinarizedSM(src)
+        img = src.copy()
+        mask = np.where((binarized_SM != 0), cv2.GC_PR_FGD,
+                        cv2.GC_PR_BGD).astype('uint8')
+        bgdmodel = np.zeros((1, 65), np.float64)
+        fgdmodel = np.zeros((1, 65), np.float64)
+        rect = (0, 0, 1, 1)  # dummy
+        iterCount = 1
+        cv2.grabCut(img, mask=mask, rect=rect, bgdModel=bgdmodel,
+                    fgdModel=fgdmodel, iterCount=iterCount, mode=cv2.GC_INIT_WITH_MASK)
+        mask_out = np.where((mask == cv2.GC_FGD) +
+                            (mask == cv2.GC_PR_FGD), 255, 0).astype('uint8')
+        output = cv2.bitwise_and(img, img, mask=mask_out)
+        return output
