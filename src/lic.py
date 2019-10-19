@@ -130,3 +130,38 @@ def extract_region_vector_field(im_gray, labels, label_counts,
 
     return vec
 
+
+def generate_noise_image(im_gray, labels, label_counts,
+                         lambda_1=0.7, min_1=0, max_1=255,
+                         lambda_2=0.3, min_2=0, max_2=255):
+    """
+    Generates a noise image from the input image by performing local dithering.\n
+    @params:\n
+    image_gray, labels, label_counts\n
+    lambda_1, min_1, max_1\n
+    lambda_2, min_2, max_2
+    """
+    im_gray = im_gray / 255.0
+    H, W = im_gray.shape
+    im_noise = np.zeros(im_gray.shape)
+
+    K = len(label_counts)
+    R = np.zeros(K)
+    for i in range(H):
+        for j in range(W):
+            R[labels[i, j]] += im_gray[i, j]
+    R /= np.array(label_counts)
+
+    T_1 = lambda_1 * (1.0 - im_gray) ** 2.0
+    T_2 = lambda_2 * (1.0 - im_gray) ** 2.0
+    P = np.random.uniform(0, 1, (H, W))
+    C_1 = min_1 * (P <= T_1) + max_1 * (P > T_1)
+    C_2 = min_2 * (P <= T_2) + max_2 * (P > T_2)
+
+    I = np.zeros((H, W))
+    for i in range(H):
+        for j in range(W):
+            I[i, j] = im_gray[i, j] <= R[labels[i, j]]
+
+    im_noise = C_1 * I + C_2 * (1.0 - I)
+    return im_noise
