@@ -159,3 +159,35 @@ class SaliencyMap:
         # return
         return dst_x, dst_y
 
+    # conspicuity maps
+    ## standard range normalization
+    def SMRangeNormalize(self, src):
+        minn, maxx, dummy1, dummy2 = cv2.minMaxLoc(src)
+        if maxx!=minn:
+            dst = src/(maxx-minn) + minn/(minn-maxx)
+        else:
+            dst = src - minn
+        return dst
+    ## computing an average of local maxima
+    def SMAvgLocalMax(self, src):
+        # size
+        stepsize = SaliencyMapDefs.default_step_local
+        width = src.shape[1]
+        height = src.shape[0]
+        # find local maxima
+        numlocal = 0
+        lmaxmean = 0
+        for y in range(0, height-stepsize, stepsize):
+            for x in range(0, width-stepsize, stepsize):
+                localimg = src[y:y+stepsize, x:x+stepsize]
+                lmin, lmax, dummy1, dummy2 = cv2.minMaxLoc(localimg)
+                lmaxmean += lmax
+                numlocal += 1
+        # averaging over all the local regions
+        return lmaxmean / numlocal
+    ## normalization specific for the saliency map model
+    def SMNormalization(self, src):
+        dst = self.SMRangeNormalize(src)
+        lmaxmean = self.SMAvgLocalMax(dst)
+        normcoeff = (1-lmaxmean)*(1-lmaxmean)
+        return dst * normcoeff
