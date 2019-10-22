@@ -94,3 +94,68 @@ class SaliencyMap:
                             (mask == cv2.GC_PR_FGD), 255, 0).astype('uint8')
         output = cv2.bitwise_and(img, img, mask=mask_out)
         return output
+
+    def OFMGetFM(self, src):
+        # creating a Gaussian pyramid
+        GaussianI = self.FMCreateGaussianPyr(src)
+        # convoluting a Gabor filter with an intensity image to extract oriemtation features
+        GaborOutput0   = [ np.empty((1,1)), np.empty((1,1)) ]  # dummy data: any kinds of np.array()s are OK
+        GaborOutput45  = [ np.empty((1,1)), np.empty((1,1)) ]
+        GaborOutput90  = [ np.empty((1,1)), np.empty((1,1)) ]
+        GaborOutput135 = [ np.empty((1,1)), np.empty((1,1)) ]
+        for j in range(2,9):
+            GaborOutput0.append(   cv2.filter2D(GaussianI[j], cv2.CV_32F, self.GaborKernel0) )
+            GaborOutput45.append(  cv2.filter2D(GaussianI[j], cv2.CV_32F, self.GaborKernel45) )
+            GaborOutput90.append(  cv2.filter2D(GaussianI[j], cv2.CV_32F, self.GaborKernel90) )
+            GaborOutput135.append( cv2.filter2D(GaussianI[j], cv2.CV_32F, self.GaborKernel135) )
+        # calculating center-surround differences for every oriantation
+        CSD0   = self.FMCenterSurroundDiff(GaborOutput0)
+        CSD45  = self.FMCenterSurroundDiff(GaborOutput45)
+        CSD90  = self.FMCenterSurroundDiff(GaborOutput90)
+        CSD135 = self.FMCenterSurroundDiff(GaborOutput135)
+        # concatenate
+        dst = list(CSD0)
+        dst.extend(CSD45)
+        dst.extend(CSD90)
+        dst.extend(CSD135)
+        # return
+        return dst
+    ## motion feature maps
+    def MFMGetFM(self, src):
+        # convert scale
+        I8U = np.uint8(255 * src)
+        cv2.waitKey(10)
+        # calculating optical flows
+        if self.prev_frame is not None:
+            farne_pyr_scale= SaliencyMapDefs.farne_pyr_scale
+            farne_levels = SaliencyMapDefs.farne_levels
+            farne_winsize = SaliencyMapDefs.farne_winsize
+            farne_iterations = SaliencyMapDefs.farne_iterations
+            farne_poly_n = SaliencyMapDefs.farne_poly_n
+            farne_poly_sigma = SaliencyMapDefs.farne_poly_sigma
+            farne_flags = SaliencyMapDefs.farne_flags
+            flow = cv2.calcOpticalFlowFarneback(\
+                prev = self.prev_frame, \
+                next = I8U, \
+                pyr_scale = farne_pyr_scale, \
+                levels = farne_levels, \
+                winsize = farne_winsize, \
+                iterations = farne_iterations, \
+                poly_n = farne_poly_n, \
+                poly_sigma = farne_poly_sigma, \
+                flags = farne_flags, \
+                flow = None \
+            )
+            flowx = flow[...,0]
+            flowy = flow[...,1]
+        else:
+            flowx = np.zeros(I8U.shape)
+            flowy = np.zeros(I8U.shape)
+        # create Gaussian pyramids
+        dst_x = self.FMGaussianPyrCSD(flowx)
+        dst_y = self.FMGaussianPyrCSD(flowy)
+        # update the current frame
+        self.prev_frame = np.uint8(I8U)
+        # return
+        return dst_x, dst_y
+
