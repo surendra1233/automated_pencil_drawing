@@ -6,9 +6,9 @@ import cv2
 import numpy as np
 from matplotlib import pyplot as plt
 
-from src.mcgp import get_gp
-from src.draw_map import get_dmap
-from src.utilities import show_img
+from mcgp import get_gp
+from draw_map import get_dmap
+from utilities import show_img
 
 
 def get_mr_img_from_rgb_img(img):
@@ -38,7 +38,7 @@ def get_mr_img(gp, draw_mp):
     r = draw_mp * (n-1)
     rin = r.astype(np.int)
     a = r - rin
-    rin = 3 - rin
+    # rin = 3 - rin
 
     z = tuple(np.indices((gp[0].shape[0], gp[0].shape[1])))
     # print('a', a.shape, 'r', r.shape, 'rin', rin.shape, 'gp', gp.shape, 'z', z[0].shape, z[1].shape)
