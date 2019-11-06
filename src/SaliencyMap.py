@@ -1,12 +1,18 @@
-import numpy as np
 import cv2
-
+import numpy as np
+import src.SaliencyMapDefs as SaliencyMapDefs
 
 class SaliencyMap:
     # initialization
     def __init__(self, width, height):
-        self.width = width
+        self.width  = width
         self.height = height
+        self.prev_frame = None
+        self.SM = None
+        self.GaborKernel0   = np.array(SaliencyMapDefs.GaborKernel_0)
+        self.GaborKernel45  = np.array(SaliencyMapDefs.GaborKernel_45)
+        self.GaborKernel90  = np.array(SaliencyMapDefs.GaborKernel_90)
+        self.GaborKernel135 = np.array(SaliencyMapDefs.GaborKernel_135)
 
     # extracting color channels
     def SMExtractRGBI(self, inputImage):
@@ -19,82 +25,57 @@ class SaliencyMap:
         # return
         return R, G, B, I
 
-    # constructing a Gaussian pyramid
+    # feature maps
+    ## constructing a Gaussian pyramid
     def FMCreateGaussianPyr(self, src):
         dst = list()
         dst.append(src)
-        for i in range(1, 9):
+        for i in range(1,9):
             nowdst = cv2.pyrDown(dst[i-1])
             dst.append(nowdst)
         return dst
-
-    # taking center-surround differences
+    ## taking center-surround differences
     def FMCenterSurroundDiff(self, GaussianMaps):
         dst = list()
-        for s in range(2, 5):
+        for s in range(2,5):
             now_size = GaussianMaps[s].shape
-            now_size = (now_size[1], now_size[0])  # (width, height)
-            tmp = cv2.resize(
-                GaussianMaps[s+3], now_size, interpolation=cv2.INTER_LINEAR)
+            now_size = (now_size[1], now_size[0])  ## (width, height)
+            tmp = cv2.resize(GaussianMaps[s+3], now_size, interpolation=cv2.INTER_LINEAR)
             nowdst = cv2.absdiff(GaussianMaps[s], tmp)
             dst.append(nowdst)
-            tmp = cv2.resize(
-                GaussianMaps[s+4], now_size, interpolation=cv2.INTER_LINEAR)
+            tmp = cv2.resize(GaussianMaps[s+4], now_size, interpolation=cv2.INTER_LINEAR)
             nowdst = cv2.absdiff(GaussianMaps[s], tmp)
             dst.append(nowdst)
         return dst
-
-    # constructing a Gaussian pyramid + taking center-surround differences
+    ## constructing a Gaussian pyramid + taking center-surround differences
     def FMGaussianPyrCSD(self, src):
         GaussianMaps = self.FMCreateGaussianPyr(src)
-        dist = self.FMCenterSurroundDiff(GaussianMaps)
-        return dist
-
-    # intensity feature maps
+        dst = self.FMCenterSurroundDiff(GaussianMaps)
+        return dst
+    ## intensity feature maps
     def IFMGetFM(self, I):
         return self.FMGaussianPyrCSD(I)
-
-    # Color feature maps
+    ## color feature maps
     def CFMGetFM(self, R, G, B):
+        # max(R,G,B)
         tmp1 = cv2.max(R, G)
         RGBMax = cv2.max(B, tmp1)
-        RGBMax[RGBMax <= 0] = 0.0001
+        RGBMax[RGBMax <= 0] = 0.0001    # prevent dividing by 0
         # min(R,G)
         RGMin = cv2.min(R, G)
         # RG = (R-G)/max(R,G,B)
         RG = (R - G) / RGBMax
         # BY = (B-min(R,G)/max(R,G,B)
         BY = (B - RGMin) / RGBMax
+        # clamp nagative values to 0
         RG[RG < 0] = 0
         BY[BY < 0] = 0
+        # obtain feature maps in the same way as intensity
         RGFM = self.FMGaussianPyrCSD(RG)
         BYFM = self.FMGaussianPyrCSD(BY)
         # return
         return RGFM, BYFM
-
-    def SMGetBinarizedSM(self, src):
-        self.SM = self.SMGetSM(src)
-        SM_I8U = np.uint8(255 * self.SM)
-        thresh, binarized_SM = cv2.threshold(
-            SM_I8U, thresh=0, maxval=255, type=cv2.THRESH_BINARY+cv2.THRESH_OTSU)
-        return binarized_SM
-
-    def SMGetSalientRegion(self, src):
-        binarized_SM = self.SMGetBinarizedSM(src)
-        img = src.copy()
-        mask = np.where((binarized_SM != 0), cv2.GC_PR_FGD,
-                        cv2.GC_PR_BGD).astype('uint8')
-        bgdmodel = np.zeros((1, 65), np.float64)
-        fgdmodel = np.zeros((1, 65), np.float64)
-        rect = (0, 0, 1, 1)  # dummy
-        iterCount = 1
-        cv2.grabCut(img, mask=mask, rect=rect, bgdModel=bgdmodel,
-                    fgdModel=fgdmodel, iterCount=iterCount, mode=cv2.GC_INIT_WITH_MASK)
-        mask_out = np.where((mask == cv2.GC_FGD) +
-                            (mask == cv2.GC_PR_FGD), 255, 0).astype('uint8')
-        output = cv2.bitwise_and(img, img, mask=mask_out)
-        return output
-
+    ## orientation feature maps
     def OFMGetFM(self, src):
         # creating a Gaussian pyramid
         GaussianI = self.FMCreateGaussianPyr(src)
@@ -191,3 +172,102 @@ class SaliencyMap:
         lmaxmean = self.SMAvgLocalMax(dst)
         normcoeff = (1-lmaxmean)*(1-lmaxmean)
         return dst * normcoeff
+    ## normalizing feature maps
+    def normalizeFeatureMaps(self, FM):
+        NFM = list()
+        for i in range(0,6):
+            normalizedImage = self.SMNormalization(FM[i])
+            nownfm = cv2.resize(normalizedImage, (self.width, self.height), interpolation=cv2.INTER_LINEAR)
+            NFM.append(nownfm)
+        return NFM
+    ## intensity conspicuity map
+    def ICMGetCM(self, IFM):
+        NIFM = self.normalizeFeatureMaps(IFM)
+        ICM = sum(NIFM)
+        return ICM
+    ## color conspicuity map
+    def CCMGetCM(self, CFM_RG, CFM_BY):
+        # extracting a conspicuity map for every color opponent pair
+        CCM_RG = self.ICMGetCM(CFM_RG)
+        CCM_BY = self.ICMGetCM(CFM_BY)
+        # merge
+        CCM = CCM_RG + CCM_BY
+        # return
+        return CCM
+    ## orientation conspicuity map
+    def OCMGetCM(self, OFM):
+        OCM = np.zeros((self.height, self.width))
+        for i in range (0,4):
+            # slicing
+            nowofm = OFM[i*6:(i+1)*6]  # angle = i*45
+            # extracting a conspicuity map for every angle
+            NOFM = self.ICMGetCM(nowofm)
+            # normalize
+            NOFM2 = self.SMNormalization(NOFM)
+            # accumulate
+            OCM += NOFM2
+        return OCM
+    ## motion conspicuity map
+    def MCMGetCM(self, MFM_X, MFM_Y):
+        return self.CCMGetCM(MFM_X, MFM_Y)
+
+    # core
+    def SMGetSM(self, src):
+        # definitions
+        size = src.shape
+        width  = size[1]
+        height = size[0]
+        # check
+#        if(width != self.width or height != self.height):
+#            sys.exit("size mismatch")
+        # extracting individual color channels
+        R, G, B, I = self.SMExtractRGBI(src)
+        # extracting feature maps
+        IFM = self.IFMGetFM(I)
+        CFM_RG, CFM_BY = self.CFMGetFM(R, G, B)
+        OFM = self.OFMGetFM(I)
+        MFM_X, MFM_Y = self.MFMGetFM(I)
+        # extracting conspicuity maps
+        ICM = self.ICMGetCM(IFM)
+        CCM = self.CCMGetCM(CFM_RG, CFM_BY)
+        OCM = self.OCMGetCM(OFM)
+        MCM = self.MCMGetCM(MFM_X, MFM_Y)
+        # adding all the conspicuity maps to form a saliency map
+        wi = SaliencyMapDefs.weight_intensity
+        wc = SaliencyMapDefs.weight_color
+        wo = SaliencyMapDefs.weight_orientation
+        wm = SaliencyMapDefs.weight_motion
+        SMMat = wi*ICM + wc*CCM + wo*OCM + wm*MCM
+        # normalize
+        normalizedSM = self.SMRangeNormalize(SMMat)
+        normalizedSM2 = normalizedSM.astype(np.float32)
+        smoothedSM = cv2.bilateralFilter(normalizedSM2, 7, 3, 1.55)
+        self.SM = cv2.resize(smoothedSM, (width,height), interpolation=cv2.INTER_NEAREST)
+        # return
+        return self.SM
+
+    def SMGetBinarizedSM(self, src):
+        # get a saliency map
+        if self.SM is None:
+            self.SM = self.SMGetSM(src)
+        # convert scale
+        SM_I8U = np.uint8(255 * self.SM)
+        # binarize
+        thresh, binarized_SM = cv2.threshold(SM_I8U, thresh=0, maxval=255, type=cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+        return binarized_SM
+
+    def SMGetSalientRegion(self, src):
+        # get a binarized saliency map
+        binarized_SM = self.SMGetBinarizedSM(src)
+        # GrabCut
+        img = src.copy()
+        mask =  np.where((binarized_SM!=0), cv2.GC_PR_FGD, cv2.GC_PR_BGD).astype('uint8')
+        bgdmodel = np.zeros((1,65),np.float64)
+        fgdmodel = np.zeros((1,65),np.float64)
+        rect = (0,0,1,1)  # dummy
+        iterCount = 1
+        cv2.grabCut(img, mask=mask, rect=rect, bgdModel=bgdmodel, fgdModel=fgdmodel, iterCount=iterCount, mode=cv2.GC_INIT_WITH_MASK)
+        # post-processing
+        mask_out = np.where((mask==cv2.GC_FGD) + (mask==cv2.GC_PR_FGD), 255, 0).astype('uint8')
+        output = cv2.bitwise_and(img,img,mask=mask_out)
+        return output
