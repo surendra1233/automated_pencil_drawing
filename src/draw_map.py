@@ -91,29 +91,3 @@ if __name__ == '__main__':
     show_img(binarized_map, title="Binarized saliency map", gray=False, splt=223)
     # show_img(cv2.cvtColor(salient_region, cv2.COLOR_BGR2RGB), gray=False)
     show_img(out, title="Draw Map", splt=224)
-    # plt.show()
-
-    # plt.subplot(2, 2, 1), plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
-    # plt.title('Input image')
-    # plt.axis("off")
-    # # cv2.imshow("input",  img)
-    # plt.subplot(2, 2, 2), plt.imshow(saliency_map, 'gray')
-    # plt.title('Saliency map')
-    # plt.axis("off")
-    # # cv2.imshow("output", map)
-    # plt.subplot(2, 2, 3), plt.imshow(binarized_map)
-    # plt.title('Binarilized saliency map')
-    # plt.axis("off")
-    # # cv2.imshow("Binarized", binarized_map)
-    # # plt.subplot(3, 2, 4), plt.imshow(
-    # #     cv2.cvtColor(salient_region, cv2.COLOR_BGR2RGB))
-    # # plt.title('Salient region')
-    # # cv2.imshow("Segmented", segmented_map)
-    # # out = ((out - np.amin(out)) * (255/ (np.amax(out) - np.amin(out)))).astype(np.uint8)
-    #
-    # plt.subplot(2, 2, 4), plt.imshow(cv2.cvtColor(out, cv2.COLOR_BGR2RGB))
-    # plt.axis("off")
-    # plt.title("Draw Map")
-    # plt.show()
-    #
-    #
