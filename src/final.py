@@ -18,8 +18,12 @@ if len(sys.argv) != 2:
     exit(0)
 
 img_path = sys.argv[1]
+# print(img_path)
 img = cv2.imread(img_path)
 bg_img = cv2.imread("paper.jpg")
+
+if img.shape[0] < 257 or img.shape[1]  < 257:
+    img = cv2.resize(img, (300, 300))
 
 if img_path == "../images/castle.jpeg":
     print(img.shape)
