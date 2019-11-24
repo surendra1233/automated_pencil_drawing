@@ -3,7 +3,7 @@
 pip install -r requirements.txt
 
 if [ $? -ne 0 ]; then
-	echo "Failed to install requirements, please make sure you are connected to the internet and you have pip."
+	echo "Failed to install requirements, please make sure you are connected to the internet and you have latest version of pip."
 	exit 1
 fi
 
