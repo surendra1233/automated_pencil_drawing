@@ -3,10 +3,10 @@ import numpy as np
 from matplotlib import pyplot as plt
 from scipy.signal import fftconvolve
 
-from src.draw_map import get_dmap
-from src.lic_pyramid import get_lp
-from src.multi_res import get_mr_img
-from src.utilities import show_img
+from draw_map import get_dmap
+from lic_pyramid import get_lp
+from multi_res import get_mr_img
+from utilities import show_img
 
 
 def get_mrl(img):

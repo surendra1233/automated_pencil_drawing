@@ -11,7 +11,7 @@ def composite_paper(img, paper, alpha=.6):
     return Image.blend(imgx, background.resize(imgx.size), alpha)
 
 if __name__ == "__main__":
-    from src.edge import get_edge_img
+    from edge import get_edge_img
     img = Image.open('../images/squirrel.jpeg', 'r')#.convert('L')
     background = Image.open('paper.jpg', 'r')#.convert('L')
     img_na = np.array(img)

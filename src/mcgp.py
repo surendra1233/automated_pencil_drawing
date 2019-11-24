@@ -6,7 +6,7 @@ import cv2
 import numpy as np
 from matplotlib import pyplot as plt
 
-from src.utilities import show_img
+from utilities import show_img
 
 
 def get_gp(im, result, N, sm_size=False):

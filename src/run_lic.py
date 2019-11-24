@@ -8,7 +8,7 @@ import sys
 import cv2 as cv
 import numpy as np
 
-from src.lic import *
+from lic import *
 
 KW = 4
 if len(sys.argv) > 2:

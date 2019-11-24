@@ -3,8 +3,8 @@ import numpy as np
 from matplotlib import pyplot as plt
 from scipy.signal import fftconvolve
 
-from src.noise_pyramid import get_np_vec_from_rgb
-from src.utilities import show_img
+from noise_pyramid import get_np_vec_from_rgb
+from utilities import show_img
 import vectorplot as vp
 
 

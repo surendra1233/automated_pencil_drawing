@@ -24,7 +24,7 @@ python setup.py install
 
 ```shell
 cd src/
-python final.py
+python final.py <IMAGE_PATH>
 ```
 
 Open `jupyter notebook` only from `src` if needs to view a notebook.

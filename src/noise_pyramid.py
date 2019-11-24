@@ -2,10 +2,10 @@ import cv2
 import numpy as np
 from matplotlib import pyplot as plt
 
-from src.lic import (extract_region_vector_field, generate_noise_image,
+from lic import (extract_region_vector_field, generate_noise_image,
                  label_regions)
-from src.mcgp import get_gp
-from src.utilities import show_img
+from mcgp import get_gp
+from utilities import show_img
 
 def get_np_from_rgb_mc_gp(mc_gp_imgs):
     out = []

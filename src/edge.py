@@ -8,8 +8,8 @@ import cv2
 import numpy as np
 from matplotlib import pyplot as plt
 
-from src.utilities import show_img
-from src.multi_res import get_mr_img_from_rgb_img
+from utilities import show_img
+from multi_res import get_mr_img_from_rgb_img
 
 
 def avg_strength(img, thresh=3, rev=False):

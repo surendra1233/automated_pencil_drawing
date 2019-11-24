@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-import src.SaliencyMapDefs as SaliencyMapDefs
+import SaliencyMapDefs as SaliencyMapDefs
 
 class SaliencyMap:
     # initialization

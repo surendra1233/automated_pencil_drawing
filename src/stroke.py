@@ -3,10 +3,10 @@ import numpy as np
 from matplotlib import pyplot as plt
 from scipy.signal import fftconvolve
 
-from src.edge import get_edge_img
-from src.multi_res import get_mr_img_from_rgb_img
-from src.utilities import show_img
-from src.multi_res_lic import get_mrl
+from edge import get_edge_img
+from multi_res import get_mr_img_from_rgb_img
+from utilities import show_img
+from multi_res_lic import get_mrl
 
 
 def get_stroke_img(edge_img, mrl):

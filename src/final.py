@@ -3,14 +3,21 @@ import numpy as np
 from matplotlib import pyplot as plt
 from scipy.signal import fftconvolve
 
-from src.blend import composite_paper
-from src.edge import get_edge_img
-from src.multi_res import get_mr_img_from_rgb_img
-from src.stroke import get_stroke_img
-from src.utilities import show_img
-from src.multi_res_lic import get_mrl
+from blend import composite_paper
+from edge import get_edge_img
+from multi_res import get_mr_img_from_rgb_img
+from stroke import get_stroke_img
+from utilities import show_img
+from multi_res_lic import get_mrl
+import sys 
+argumentList = sys.argv 
+  
+# Print the usage instructions
+if len(sys.argv) != 2:
+    print("USAGE: python3 final.py image-path")
+    exit(0)
 
-img_path = "../images/castle.jpeg"
+img_path = sys.argv[1]
 img = cv2.imread(img_path)
 bg_img = cv2.imread("paper.jpg")
 

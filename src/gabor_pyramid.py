@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 from matplotlib import pyplot as plt
-from src.utilities import show_img
+from utilities import show_img
 
 def apply_gabor(img, theta, param=None):
     ksize = (31,31)

@@ -8,10 +8,10 @@ import sys
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
-import src.SaliencyMap as SaliencyMap
+import SaliencyMap as SaliencyMap
 
 
-from src.utilities import show_img
+from utilities import show_img
 
 # Usage example
 # 
