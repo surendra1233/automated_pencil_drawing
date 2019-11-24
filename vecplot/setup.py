@@ -68,7 +68,7 @@ except ImportError:
     cmdclass = {}
 
 # Call the setup function
-if _name_ == "_main_":
+if __name__ == "__main__":
     setup(configuration=configuration,
           name=DISTNAME,
           maintainer=MAINTAINER,
