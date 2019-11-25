@@ -50,6 +50,7 @@ Open `jupyter notebook` only from `src` if needs to view a notebook.
 ![couple](outputs/couple.png)
 ![rose](outputs/rose.png)
 ![flower](outputs/flower.png)
+![dog](outputs/dog.png)
 
 
 ##### paper
