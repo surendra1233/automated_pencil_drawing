@@ -46,7 +46,10 @@ Open `jupyter notebook` only from `src` if needs to view a notebook.
 
 **Slightly detailed example in** `src/main.ipynb`
 
-### Sample Outputs 
+### Sample Outputs
+![couple](outputs/couple.png)
+![rose](outputs/rose.png)
+![flower](outputs/flower.png)
 
 
 ##### paper
