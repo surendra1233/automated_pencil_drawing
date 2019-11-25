@@ -46,6 +46,9 @@ Open `jupyter notebook` only from `src` if needs to view a notebook.
 
 **Slightly detailed example in** `src/main.ipynb`
 
+### Sample Outputs 
+
+
 ##### paper
 
 [1] Automatic generation of accentuated pencil drawing with saliency
